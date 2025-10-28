@@ -1,3 +1,5 @@
 class Persona:
-    def __init__(self, persona_id):
-        self.persona_id = persona_id
+    def __init__(self, id:int):
+        self.id: int = id
+        self.nivel_defensa: int = 3
+        self.estado: str = "sano"
