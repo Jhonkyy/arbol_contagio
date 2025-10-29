@@ -87,3 +87,18 @@ class Simulacion:
             celda_nueva.ocupada = True
             celda_nueva.ocupante = persona
             celda_nueva.estado = persona.estado
+
+    def mostrar_tablero(self) -> None:
+   
+        print("\n=== TABLERO ===")
+        for i in range(self.tamano):
+            fila = ""
+            for j in range(self.tamano):
+                celda = self.tablero.matriz[i][j]
+                if celda.ocupada and celda.ocupante is not None:
+                    icono = "🟥" if celda.ocupante.estado == "infectado" else "🟩"
+                    fila += f"{icono}{celda.ocupante.id:02d} "
+                else:
+                    fila += "⬜  "
+            print(fila)
+
