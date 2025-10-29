@@ -2,6 +2,7 @@ import random
 from persona import Persona
 from tablero import Tablero
 from arbol_infeccion import ArbolInfectado
+from arbol_infeccion import NodoInfectado
 
 class Simulacion:
     def __init__(self, tamano: int, num_personas: int, seed: int | None = None) -> None:
@@ -34,3 +35,14 @@ class Simulacion:
             celda.estado = "sano"
 
         print(f"{len(self.personas)} personas ubicadas aleatoriamente en el tablero.")
+        
+        
+        paciente_cero = random.choice(self.personas)
+        paciente_cero.estado = "infectado"
+
+        celda_cero = self.tablero.matriz[paciente_cero.x][paciente_cero.y]
+        celda_cero.estado = "infectado"
+
+        self.arbol.root = NodoInfectado(paciente_cero.id)
+
+        print(f"Paciente cero: Persona {paciente_cero.id} en posición ({paciente_cero.x}, {paciente_cero.y})")
