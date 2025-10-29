@@ -89,7 +89,6 @@ class Simulacion:
             celda_nueva.estado = persona.estado
 
     def mostrar_tablero(self) -> None:
-   
         print("\n=== TABLERO ===")
         for i in range(self.tamano):
             fila = ""
@@ -102,3 +101,16 @@ class Simulacion:
                     fila += "⬜  "
             print(fila)
 
+    def contagiar(self) -> None:
+        for persona in self.personas:
+            if persona.estado == "infectado":
+      
+                for otra in self.personas:
+                    if otra.estado == "sano" and persona.x == otra.x and persona.y == otra.y:
+                       
+                        otra.estado = "infectado"
+                        
+                        self.tablero.matriz[otra.x][otra.y].estado = "infectado"
+                     
+                        self.arbol.registrar_contagio(persona, otra)
+                        print(f"Persona {otra.id} ha sido infectada por Persona {persona.id}")
