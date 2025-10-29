@@ -46,3 +46,10 @@ class Simulacion:
         self.arbol.root = NodoInfectado(paciente_cero.id)
 
         print(f"Paciente cero: Persona {paciente_cero.id} en posición ({paciente_cero.x}, {paciente_cero.y})")
+        
+    
+    def mostrar_estado_inicial(self) -> None:
+        print("\n=== ESTADO INICIAL DE LA SIMULACIÓN ===")
+        for persona in self.personas:
+            estado_icono = "🟥" if persona.estado == "infectado" else "🟩"
+            print(f"{estado_icono} Persona {persona.id}: posición ({persona.x}, {persona.y}), defensa={persona.nivel_defensa}")
