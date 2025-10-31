@@ -16,6 +16,11 @@ if __name__ == "__main__":
     while True:
         ronda += 1
         
+        
+        if sim.sanos_restantes() == False:
+            print("Simulacion terminada, no hay sobrevivientes")
+            break
+        
         print(f"\n===== RONDA {ronda} =====")
         
         
