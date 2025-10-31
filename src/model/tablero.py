@@ -8,14 +8,15 @@ class Celda:
         self.estado: str = "vacia"
 
     def agregar_ocupante(self, persona):
-        self.ocupantes.append(persona)
-        self.ocupada = True       
+        if persona not in self.ocupantes:
+            self.ocupantes.append(persona)
+        self.ocupada = bool(self.ocupantes)
 
     def remover_ocupante(self, persona):
         if persona in self.ocupantes:
             self.ocupantes.remove(persona)
+        self.ocupada = bool(self.ocupantes)
         if not self.ocupantes:
-            self.ocupada = False
             self.estado = "vacia"
 
 class Tablero:

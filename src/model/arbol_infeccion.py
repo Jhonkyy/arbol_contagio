@@ -13,7 +13,7 @@ class NodoInfectado:
         return tree_str
 
     def __repr__(self) -> str:
-        # Llamada base para evitar errores al imprimir directamente el nodo
+     
         return self.mostrar()
 
 class ArbolInfectado:
@@ -53,21 +53,28 @@ class ArbolInfectado:
             return False
         
         if self.root.id == id:
-            print(" No se puede Curar la Raiz de todo mal y peligro")
+            print("No se puede curar al paciente cero")
             return False
         
         if current.id == id:
             return True
         
-        copia_hijos = current.hijos
-        
-        for hijo in copia_hijos:
-            if self.curar(id,hijo,flag):
+        for hijo in current.hijos[:]:  
+            if self.curar(id, hijo, flag):
                 for nieto in hijo.hijos:
                     current.hijos.append(nieto)
                 current.hijos.remove(hijo)
-                return False
+                return True  
         return False
+
+    def remap_ids(self, mapping: dict) -> None:
+        if self.root is None:
+            return
+        def _remap(node: NodoInfectado) -> None:
+            node.id = mapping.get(node.id, node.id)
+            for hijo in node.hijos:
+                _remap(hijo)
+        _remap(self.root)
 
     def __repr__(self):
         if self.root is None:

@@ -11,6 +11,7 @@ class Simulacion:
         self.tamano: int = tamano
         self.num_personas: int = num_personas
         self.ronda: int = 0
+        self.toroidal: bool = True
 
         self.tablero: Tablero = Tablero(tamano)
         self.personas: list[Persona] = []
@@ -44,6 +45,9 @@ class Simulacion:
 
         self.arbol.root = NodoInfectado(self.paciente_cero.id)
 
+    
+        self.num_personas = len(self.personas)
+
         print(f"Paciente cero: Persona {self.paciente_cero.id} en posición ({self.paciente_cero.x}, {self.paciente_cero.y})")
         
     
@@ -60,57 +64,63 @@ class Simulacion:
         self.mostrar_tablero()
         self.mostrar_sanos()
         
-        
         for persona in self.personas:
             print(f"posicion persona{persona.id} = {persona.x}{persona.y}")
-    
-    def sanos_restantes(self):
-        personas_sanas = []
-        for persona in self.personas:
-            if persona.estado == "sano":
-                personas_sanas.append((persona,persona.nivel_defensa))
-        if len(personas_sanas) == 0:
-            return False
-        return True
-    
+        
     def mover_personas(self) -> None:
         direcciones = [
-            (-1, 0),  # norte
-            (1, 0),   # sur
-            (0, -1),  # oeste
-            (0, 1),   # este
-            (-1, -1), # noroeste
-            (-1, 1),  # noreste
-            (1, -1),  # suroeste
-            (1, 1)    # sureste
+            (-1, 0), (1, 0), (0, -1), (0, 1),
+            (-1, -1), (-1, 1), (1, -1), (1, 1)
         ]
 
+      
+        propuestas: list[tuple[int,int]] = []
         for persona in self.personas:
             dx, dy = random.choice(direcciones)
-            nuevo_x = persona.x + dx
-            nuevo_y = persona.y + dy
-            if not (0 <= nuevo_x < self.tamano and 0 <= nuevo_y < self.tamano):
-                continue
+            nx = persona.x + dx
+            ny = persona.y + dy
+            
+            nx = nx % self.tamano
+            ny = ny % self.tamano
+            propuestas.append((nx, ny))
 
+     
+        nueva_matriz: list[list[list[Persona]]] = [[[] for _ in range(self.tamano)] for _ in range(self.tamano)]
+        for persona, (nx, ny) in zip(self.personas, propuestas):
+            persona.x = nx
+            persona.y = ny
+            nueva_matriz[nx][ny].append(persona)
 
-            celda_actual = self.tablero.matriz[persona.x][persona.y]
-            celda_actual.remover_ocupante(persona)
+       
+        for i in range(self.tamano):
+            for j in range(self.tamano):
+                celda = self.tablero.matriz[i][j]
+                celda.ocupantes = []
+                celda.ocupada = False
+                celda.estado = "vacia"
 
-            persona.x = nuevo_x
-            persona.y = nuevo_y
+        for i in range(self.tamano):
+            for j in range(self.tamano):
+                ocupantes = nueva_matriz[i][j]
+                if ocupantes:
+                    celda = self.tablero.matriz[i][j]
+                    for p in ocupantes:
+                        if p not in celda.ocupantes:
+                            celda.ocupantes.append(p)
+                    celda.ocupada = True
+                    celda.estado = "infectado" if any(p.estado == "infectado" for p in ocupantes) else "sano"
 
-            celda_nueva = self.tablero.matriz[nuevo_x][nuevo_y]
-            celda_nueva.agregar_ocupante(persona)
-            celda_nueva.ocupada = True
-            celda_nueva.estado = persona.estado
-    
+        self.validar_integridad()
+
     def mostrar_sanos(self):
         personas_sanas = []
         for persona in self.personas:
             if persona.estado == "sano":
                 personas_sanas.append((persona,persona.nivel_defensa))
         print(personas_sanas) 
-
+    
+    def sanos_restantes(self) -> bool:
+        return any(persona.estado == "sano" for persona in self.personas)
     
     def mostrar_tablero(self) -> None:
         print("\n=== TABLERO ===")
@@ -118,35 +128,47 @@ class Simulacion:
             fila = ""
             for j in range(self.tamano):
                 celda = self.tablero.matriz[i][j]
-                if celda.ocupada and celda.ocupantes:
-                    ocupantes_str = [repr(p) for p in celda.ocupantes]
-                    fila += "[" + ", ".join(ocupantes_str) + "] "
+                if celda.ocupantes:
+                    ocupantes_str = [repr(p) for p in celda.ocupantes]  
+                    fila += "[" + ",".join(ocupantes_str) + "] "
                 else:
                     fila += "[  ] "
             print(fila)
 
     def contagiar(self) -> None:
-        for persona in self.personas:
-            if persona.estado == "infectado":
-                for otra in self.personas:
-                    if otra.estado == "sano" and persona.x == otra.x and persona.y == otra.y:
-                        otra.nivel_defensa -= 1
-                        if otra.nivel_defensa == 0:
-                            otra.estado = "infectado"
-                            self.tablero.matriz[otra.x][otra.y].estado = "infectado"
-                            self.arbol.registrar_contagio(persona, otra)
-                            print(f"Persona {otra.id} ha sido infectada por Persona {persona.id}")
+      
+        for i in range(self.tamano):
+            for j in range(self.tamano):
+                celda = self.tablero.matriz[i][j]
+           
+                if len(celda.ocupantes) < 2:
+                    continue
+                
+                
+                infectados = [p for p in celda.ocupantes if p.estado == "infectado"]
+                if not infectados:
+                    continue
+
+                
+                for persona in celda.ocupantes:
+                    if persona.estado == "sano":
+                     
+                        persona.nivel_defensa -= len(infectados)
+                        if persona.nivel_defensa <= 0:
+                            persona.estado = "infectado"
+                            celda.estado = "infectado"
+                          
+                            infector = random.choice(infectados)
+                            self.arbol.registrar_contagio(infector, persona)
+                            print(f"Persona {persona.id} ha sido infectada por Persona {infector.id}")
 
     def curar(self, x, y):
-        
         celda = self.tablero.matriz[x][y]
-
         infectados = [persona for persona in celda.ocupantes if persona.estado == "infectado"]
-        
         if not infectados:
             print("No hay infectados en esta celda.")
             return
-
+        persona_curar = None
         if len(infectados) > 1:
             print("Hay más de un infectado en la zona. ¿A quién querés sanar?")
             for persona in infectados:
@@ -156,39 +178,88 @@ class Simulacion:
             except ValueError:
                 print("ID inválido.")
                 return
-
             for persona in infectados:
                 if persona.id == id_curar:
                     persona_curar = persona
-            
-            if not persona_curar:
+            if persona_curar is None:
                 print("No se encontró una persona infectada con ese ID en esta celda.")
                 return
         else:
             persona_curar = infectados[0]
 
-        self.arbol.curar(persona_curar.id)
+        result = self.arbol.curar(persona_curar.id)
+        if not result:
+            return
         persona_curar.estado = "sano"
         persona_curar.nivel_defensa = 3
-
         print(f"La Persona {persona_curar.id} ha sido curada exitosamente.")
+        self.validar_integridad()
 
-    
-    def agregar_personas(self, x,y):
-        
-        celda = self.tablero.matriz[x][y]
-        
-        self.num_personas += 1
-        id_persona = self.num_personas
-        
-        persona_nueva = Persona(id_persona,x,y)
-        
+    def agregar_personas(self, x, y):
+        if not (0 <= x < self.tamano and 0 <= y < self.tamano):
+            print("Posición fuera del tablero")
+            return
+
+        nueva_id = max((p.id for p in self.personas), default=0) + 1
+        persona_nueva = Persona(nueva_id, x, y)
+        persona_nueva.estado = "sano"
+
         self.personas.append(persona_nueva)
-        celda.ocupantes.append(persona_nueva)
-    
+      
+        celda = self.tablero.matriz[x][y]
+        if persona_nueva not in celda.ocupantes:
+            celda.ocupantes.append(persona_nueva)
+        celda.ocupada = True
+        if any(p.estado == "infectado" for p in celda.ocupantes):
+            celda.estado = "infectado"
+        else:
+            celda.estado = "sano"
+        self.num_personas = len(self.personas)
+        self.validar_integridad()
+
     def curar_sanos(self):
         for persona in self.personas:
             if persona.id == self.paciente_cero.id:
                 pass
             elif persona.estado == "sano":
                 persona.nivel_defensa+=1
+
+    def validar_integridad(self) -> None:
+       
+        for i in range(self.tamano):
+            for j in range(self.tamano):
+                c = self.tablero.matriz[i][j]
+                c.ocupantes = []
+                c.ocupada = False
+                c.estado = "vacia"
+
+       
+        for persona in self.personas:
+            persona.x = persona.x % self.tamano
+            persona.y = persona.y % self.tamano
+
+      
+        for persona in self.personas:
+            celda = self.tablero.matriz[persona.x][persona.y]
+            if all(p is not persona for p in celda.ocupantes):
+                celda.ocupantes.append(persona)
+            celda.ocupada = True
+            if persona.estado == "infectado":
+                celda.estado = "infectado"
+            elif celda.estado != "infectado":
+                celda.estado = "sano"
+
+       
+        present_ids = {p.id for row in self.tablero.matriz for c in row for p in c.ocupantes}
+        for persona in self.personas:
+            if persona.id not in present_ids:
+                persona.x %= self.tamano
+                persona.y %= self.tamano
+                celda = self.tablero.matriz[persona.x][persona.y]
+                if all(p is not persona for p in celda.ocupantes):
+                    celda.ocupantes.append(persona)
+                    celda.ocupada = True
+                    if persona.estado == "infectado":
+                        celda.estado = "infectado"
+                    elif celda.estado != "infectado":
+                        celda.estado = "sano"
