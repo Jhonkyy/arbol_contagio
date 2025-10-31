@@ -54,7 +54,11 @@ class Simulacion:
             estado_icono = "🟥" if persona.estado == "infectado" else "🟩"
             print(f"{estado_icono} Persona {persona.id}: posición ({persona.x}, {persona.y}), defensa={persona.nivel_defensa}")
     
-
+    def simular_ronda(self):
+        self.mover_personas()
+        self.contagiar()
+        self.mostrar_tablero()
+        
     def mover_personas(self) -> None:
         direcciones = [
             (-1, 0),  # norte
