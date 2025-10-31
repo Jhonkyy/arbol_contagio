@@ -60,9 +60,19 @@ class Simulacion:
         self.mostrar_tablero()
         self.mostrar_sanos()
         
+        
         for persona in self.personas:
             print(f"posicion persona{persona.id} = {persona.x}{persona.y}")
-        
+    
+    def sanos_restantes(self):
+        personas_sanas = []
+        for persona in self.personas:
+            if persona.estado == "sano":
+                personas_sanas.append((persona,persona.nivel_defensa))
+        if len(personas_sanas) == 0:
+            return False
+        return True
+    
     def mover_personas(self) -> None:
         direcciones = [
             (-1, 0),  # norte
@@ -100,6 +110,7 @@ class Simulacion:
             if persona.estado == "sano":
                 personas_sanas.append((persona,persona.nivel_defensa))
         print(personas_sanas) 
+
     
     def mostrar_tablero(self) -> None:
         print("\n=== TABLERO ===")
