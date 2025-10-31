@@ -5,9 +5,8 @@ from model.arbol_infeccion import ArbolInfectado
 from model.arbol_infeccion import NodoInfectado
 
 class Simulacion:
-    def __init__(self, tamano: int, num_personas: int, seed: int | None = None) -> None:
-        if seed is not None:
-            random.seed(seed)
+    def __init__(self, tamano: int, num_personas: int) -> None:
+
 
         self.tamano: int = tamano
         self.num_personas: int = num_personas
@@ -162,3 +161,16 @@ class Simulacion:
         persona_curar.nivel_defensa = 3
 
         print(f"La Persona {persona_curar.id} ha sido curada exitosamente.")
+
+    
+    def agregar_personas(self, x,y):
+        
+        celda = self.tablero.matriz[x][y]
+        
+        self.num_personas += 1
+        id_persona = self.num_personas
+        
+        persona_nueva = Persona(id_persona,x,y)
+        
+        self.personas.append(persona_nueva)
+        celda.ocupantes.append(persona_nueva)
