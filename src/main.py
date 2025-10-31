@@ -23,7 +23,7 @@ if __name__ == "__main__":
             print("Todos los sanos reciben +3 de nivel de defensa\n")
             sim.curar_sanos()
         
-        opcion = int(input("Seleccione una opcion:\n1. Siguiente ronda\n2.curar\n3. agregar personas\n"))
+        opcion = int(input("Seleccione una opcion:\n1. Siguiente ronda\n2.curar\n3. agregar personas\n4. Salir\n"))
         
         if opcion == 1:
             sim.simular_ronda()
@@ -35,5 +35,7 @@ if __name__ == "__main__":
             x = int(input("posicion X de persona a agregar: "))
             y = int(input("posicion y de persona a agregar: "))
             sim.agregar_personas(x,y)
+        elif opcion == 4:
+            break
         print(sim.arbol)
 
