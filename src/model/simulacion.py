@@ -82,18 +82,13 @@ class Simulacion:
             if not (0 <= nuevo_x < self.tamano and 0 <= nuevo_y < self.tamano):
                 continue
 
-            # Quitar de la celda actual
+
             celda_actual = self.tablero.matriz[persona.x][persona.y]
             celda_actual.remover_ocupante(persona)
-            if not celda_actual.ocupantes:
-                celda_actual.ocupada = False
-                celda_actual.estado = "vacia"
 
-            # Mover persona
             persona.x = nuevo_x
             persona.y = nuevo_y
 
-            # Agregar a la nueva celda
             celda_nueva = self.tablero.matriz[nuevo_x][nuevo_y]
             celda_nueva.agregar_ocupante(persona)
             celda_nueva.ocupada = True
