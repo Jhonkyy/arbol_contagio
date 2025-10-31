@@ -1,8 +1,8 @@
 import random
-from persona import Persona
-from tablero import Tablero
-from arbol_infeccion import ArbolInfectado
-from arbol_infeccion import NodoInfectado
+from model.persona import Persona
+from model.tablero import Tablero
+from model.arbol_infeccion import ArbolInfectado
+from model.arbol_infeccion import NodoInfectado
 
 class Simulacion:
     def __init__(self, tamano: int, num_personas: int, seed: int | None = None) -> None:
@@ -51,7 +51,7 @@ class Simulacion:
     def mostrar_estado_inicial(self) -> None:
         print("\n=== ESTADO INICIAL DE LA SIMULACIÓN ===")
         for persona in self.personas:
-            estado_icono = "🟥" if persona.estado == "infectado" else "🟩"
+            estado_icono = "R" if persona.estado == "infectado" else "V"
             print(f"{estado_icono} Persona {persona.id}: posición ({persona.x}, {persona.y}), defensa={persona.nivel_defensa}")
     
     def simular_ronda(self):
@@ -99,22 +99,26 @@ class Simulacion:
             for j in range(self.tamano):
                 celda = self.tablero.matriz[i][j]
                 if celda.ocupada and celda.ocupante is not None:
-                    icono = "🟥" if celda.ocupante.estado == "infectado" else "🟩"
+                    icono = "R" if celda.ocupante.estado == "infectado" else "V"
                     fila += f"{icono}{celda.ocupante.id:02d} "
                 else:
-                    fila += "⬜  "
+                    fila += "B  "
             print(fila)
 
     def contagiar(self) -> None:
         for persona in self.personas:
             if persona.estado == "infectado":
-      
                 for otra in self.personas:
                     if otra.estado == "sano" and persona.x == otra.x and persona.y == otra.y:
-                       
-                        otra.estado = "infectado"
-                        
-                        self.tablero.matriz[otra.x][otra.y].estado = "infectado"
-                     
-                        self.arbol.registrar_contagio(persona, otra)
-                        print(f"Persona {otra.id} ha sido infectada por Persona {persona.id}")
+                        otra.nivel_defensa -= 1
+                        if otra.nivel_defensa == 0:
+                            otra.estado = "infectado"
+                            self.tablero.matriz[otra.x][otra.y].estado = "infectado"
+                            self.arbol.registrar_contagio(persona, otra)
+                            print(f"Persona {otra.id} ha sido infectada por Persona {persona.id}")
+
+    def curar(self,x,y):
+        for persona in self.personas:
+            if persona.x == x and persona.y == y:
+                self.arbol.curar(persona.id)
+                persona.estado = "sano"
