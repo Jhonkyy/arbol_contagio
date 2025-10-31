@@ -9,13 +9,14 @@ class Celda:
 
     def agregar_ocupante(self, persona):
         self.ocupantes.append(persona)
-        self.ocupada = True
+        self.ocupada = True       
 
     def remover_ocupante(self, persona):
         if persona in self.ocupantes:
             self.ocupantes.remove(persona)
         if not self.ocupantes:
             self.ocupada = False
+            self.estado = "vacia"
 
 class Tablero:
     def __init__(self, tamano: int):

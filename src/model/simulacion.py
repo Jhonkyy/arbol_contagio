@@ -31,7 +31,7 @@ class Simulacion:
             self.personas.append(persona)
             celda = self.tablero.matriz[x][y]
             celda.ocupada = True
-            celda.ocupante = persona
+            celda.agregar_ocupante(persona)
             celda.estado = "sano"
 
         print(f"{len(self.personas)} personas ubicadas aleatoriamente en el tablero.")
@@ -55,9 +55,13 @@ class Simulacion:
             print(f"{estado_icono} Persona {persona.id}: posición ({persona.x}, {persona.y}), defensa={persona.nivel_defensa}")
     
     def simular_ronda(self):
+        
         self.mover_personas()
         self.contagiar()
         self.mostrar_tablero()
+        
+        for persona in self.personas:
+            print(f"posicion persona{persona.id} = {persona.x}{persona.y}")
         
     def mover_personas(self) -> None:
         direcciones = [
@@ -75,21 +79,24 @@ class Simulacion:
             dx, dy = random.choice(direcciones)
             nuevo_x = persona.x + dx
             nuevo_y = persona.y + dy
-           
             if not (0 <= nuevo_x < self.tamano and 0 <= nuevo_y < self.tamano):
                 continue
-           
-            celda_actual = self.tablero.matriz[persona.x][persona.y]
-            celda_actual.ocupada = False
-            celda_actual.ocupante = None
-            celda_actual.estado = "vacia"
 
+            # Quitar de la celda actual
+            celda_actual = self.tablero.matriz[persona.x][persona.y]
+            celda_actual.remover_ocupante(persona)
+            if not celda_actual.ocupantes:
+                celda_actual.ocupada = False
+                celda_actual.estado = "vacia"
+
+            # Mover persona
             persona.x = nuevo_x
             persona.y = nuevo_y
 
+            # Agregar a la nueva celda
             celda_nueva = self.tablero.matriz[nuevo_x][nuevo_y]
+            celda_nueva.agregar_ocupante(persona)
             celda_nueva.ocupada = True
-            celda_nueva.ocupante = persona
             celda_nueva.estado = persona.estado
 
     def mostrar_tablero(self) -> None:
@@ -98,11 +105,14 @@ class Simulacion:
             fila = ""
             for j in range(self.tamano):
                 celda = self.tablero.matriz[i][j]
-                if celda.ocupada and celda.ocupante is not None:
-                    icono = "R" if celda.ocupante.estado == "infectado" else "V"
-                    fila += f"{icono}{celda.ocupante.id:02d} "
+                if celda.ocupada and celda.ocupantes:
+                    ocupantes_str = []
+                    for p in celda.ocupantes:
+                        icono = "R" if p.estado == "infectado" else "V"
+                        ocupantes_str.append(f"{icono}{p.id:02d}")
+                    fila += "[" + ",".join(ocupantes_str) + "] "
                 else:
-                    fila += "B  "
+                    fila += "[  ] "
             print(fila)
 
     def contagiar(self) -> None:
@@ -117,8 +127,38 @@ class Simulacion:
                             self.arbol.registrar_contagio(persona, otra)
                             print(f"Persona {otra.id} ha sido infectada por Persona {persona.id}")
 
-    def curar(self,x,y):
-        for persona in self.personas:
-            if persona.x == x and persona.y == y:
-                self.arbol.curar(persona.id)
-                persona.estado = "sano"
+    def curar(self, x, y):
+        
+        celda = self.tablero.matriz[x][y]
+
+        infectados = [persona for persona in celda.ocupantes if persona.estado == "infectado"]
+        
+        if not infectados:
+            print("No hay infectados en esta celda.")
+            return
+
+        if len(infectados) > 1:
+            print("Hay más de un infectado en la zona. ¿A quién querés sanar?")
+            for persona in infectados:
+                print(f"Persona {persona.id} - posición ({persona.x}, {persona.y})")
+            try:
+                id_curar = int(input("Ingrese el ID de la persona que desea curar: "))
+            except ValueError:
+                print("ID inválido.")
+                return
+
+            for persona in infectados:
+                if persona.id == id_curar:
+                    persona_curar = persona
+            
+            if not persona_curar:
+                print("No se encontró una persona infectada con ese ID en esta celda.")
+                return
+        else:
+            persona_curar = infectados[0]
+
+        self.arbol.curar(persona_curar.id)
+        persona_curar.estado = "sano"
+        persona_curar.nivel_defensa = 3
+
+        print(f"La Persona {persona_curar.id} ha sido curada exitosamente.")

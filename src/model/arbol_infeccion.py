@@ -52,6 +52,10 @@ class ArbolInfectado:
         if current is None:
             return False
         
+        if self.root.id == id:
+            print(" No se puede Curar la Raiz de todo mal y peligro")
+            return False
+        
         if current.id == id:
             return True
         
