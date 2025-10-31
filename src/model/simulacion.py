@@ -36,15 +36,15 @@ class Simulacion:
         print(f"{len(self.personas)} personas ubicadas aleatoriamente en el tablero.")
         
         
-        paciente_cero = random.choice(self.personas)
-        paciente_cero.estado = "infectado"
+        self.paciente_cero = random.choice(self.personas)
+        self.paciente_cero.estado = "infectado"
 
-        celda_cero = self.tablero.matriz[paciente_cero.x][paciente_cero.y]
+        celda_cero = self.tablero.matriz[self.paciente_cero.x][self.paciente_cero.y]
         celda_cero.estado = "infectado"
 
-        self.arbol.root = NodoInfectado(paciente_cero.id)
+        self.arbol.root = NodoInfectado(self.paciente_cero.id)
 
-        print(f"Paciente cero: Persona {paciente_cero.id} en posición ({paciente_cero.x}, {paciente_cero.y})")
+        print(f"Paciente cero: Persona {self.paciente_cero.id} en posición ({self.paciente_cero.x}, {self.paciente_cero.y})")
         
     
     def mostrar_estado_inicial(self) -> None:
@@ -105,11 +105,8 @@ class Simulacion:
             for j in range(self.tamano):
                 celda = self.tablero.matriz[i][j]
                 if celda.ocupada and celda.ocupantes:
-                    ocupantes_str = []
-                    for p in celda.ocupantes:
-                        icono = "R" if p.estado == "infectado" else "V"
-                        ocupantes_str.append(f"{icono}{p.id:02d}")
-                    fila += "[" + ",".join(ocupantes_str) + "] "
+                    ocupantes_str = [repr(p) for p in celda.ocupantes]
+                    fila += "[" + ", ".join(ocupantes_str) + "] "
                 else:
                     fila += "[  ] "
             print(fila)
@@ -174,3 +171,10 @@ class Simulacion:
         
         self.personas.append(persona_nueva)
         celda.ocupantes.append(persona_nueva)
+    
+    def curar_sanos(self):
+        for persona in self.personas:
+            if persona.id == self.paciente_cero.id:
+                pass
+            elif persona.estado == "sano":
+                persona.nivel_defensa+=1
