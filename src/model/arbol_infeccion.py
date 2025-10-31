@@ -1,4 +1,4 @@
-from persona import Persona
+from model.persona import Persona
 
 class NodoInfectado:
     def __init__(self, persona_id: int):
@@ -27,13 +27,13 @@ class ArbolInfectado:
             flag = False
 
         if self.root is None:
-            self.root = NodoInfectado(infectador.persona_id)
+            self.root = NodoInfectado(infectador.id)
             current = self.root
-            current.hijos.append(NodoInfectado(infectado.persona_id))
+            current.hijos.append(NodoInfectado(infectado.id))
             return True
 
-        if current.id == infectador.persona_id:
-            current.hijos.append(NodoInfectado(infectado.persona_id))
+        if current.id == infectador.id:
+            current.hijos.append(NodoInfectado(infectado.id))
             return True
 
 
@@ -42,6 +42,27 @@ class ArbolInfectado:
             if inserted:
                 return True
 
+        return False
+    
+    def curar(self, id:int, current:NodoInfectado = None, flag: bool = True):
+        if flag:
+            current = self.root
+            flag = False
+            
+        if current is None:
+            return False
+        
+        if current.id == id:
+            return True
+        
+        copia_hijos = current.hijos
+        
+        for hijo in copia_hijos:
+            if self.curar(id,hijo,flag):
+                for nieto in hijo.hijos:
+                    current.hijos.append(nieto)
+                current.hijos.remove(hijo)
+                return False
         return False
 
     def __repr__(self):
