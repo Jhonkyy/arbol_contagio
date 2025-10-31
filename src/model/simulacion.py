@@ -58,6 +58,7 @@ class Simulacion:
         self.mover_personas()
         self.contagiar()
         self.mostrar_tablero()
+        self.mostrar_sanos()
         
         for persona in self.personas:
             print(f"posicion persona{persona.id} = {persona.x}{persona.y}")
@@ -97,7 +98,14 @@ class Simulacion:
             celda_nueva.agregar_ocupante(persona)
             celda_nueva.ocupada = True
             celda_nueva.estado = persona.estado
-
+    
+    def mostrar_sanos(self):
+        personas_sanas = []
+        for persona in self.personas:
+            if persona.estado == "sano":
+                personas_sanas.append((persona,persona.nivel_defensa))
+        print(personas_sanas) 
+    
     def mostrar_tablero(self) -> None:
         print("\n=== TABLERO ===")
         for i in range(self.tamano):
