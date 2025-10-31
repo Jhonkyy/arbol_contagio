@@ -1,11 +1,21 @@
-from persona import Persona
+from model.persona import Persona
 
 class Celda:
     def __init__(self,):
         self.posicion: tuple[int,int] = (0,0)
         self.ocupada: bool = False 
-        self.ocupante: Persona | None = [] 
+        self.ocupantes: list = []
         self.estado: str = "vacia"
+
+    def agregar_ocupante(self, persona):
+        self.ocupantes.append(persona)
+        self.ocupada = True
+
+    def remover_ocupante(self, persona):
+        if persona in self.ocupantes:
+            self.ocupantes.remove(persona)
+        if not self.ocupantes:
+            self.ocupada = False
 
 class Tablero:
     def __init__(self, tamano: int):
