@@ -63,6 +63,7 @@ class ArbolInfectado:
             if self.curar(id, hijo, flag):
                 for nieto in hijo.hijos:
                     current.hijos.append(nieto)
+                current.hijos += hijo.hijos
                 current.hijos.remove(hijo)
                 return True  
         return False
